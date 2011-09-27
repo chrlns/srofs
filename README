@@ -1,0 +1,33 @@
+Simple Read Only Filesystem (SROFS)
+-----------------------------------
+
+SROFS is a simple design of a readonly filesystem for embedded systems such as
+Atmel ATmega based microcontroller boards (Arduino in mind).
+
+Structures
+----------
+
+A SROFS filesystem consists of
+ - a superblock
+ - a file index
+ - one or more files
+
+There are no directories although the filesystem API may provide virtual access
+to directory structures.
+
+Superblock (first device block):
+[0-4]   MAGIC           "SROFS" filesystem identifier
+[5  ]   VERSION         SROFS version number, currently 0
+[6  ]   BLOCKSIZE       Size of a logical filesystem block, 2^BLOCKSIZE
+                        default 9 = 2^9 = 512 byte blocks
+[7  ]	FINDEX_BLOCK    Logical blocknumber of first file index block
+
+File Index:
+[File Entry]*           One or more file entry structures
+
+File Entry:
+[0-118]    FILE_PATH        NUL terminated string containing the complete file 
+                            path (ASCII), e.g. "wwwroot/foo/bar.txt"
+[119-122]  NUM_BLOCKS	    Number of used logical blocks 
+[123-126]  FIRST_BLOCK      Logical block index of first data block
+[127-128]  LAST_BLOCK_SIZE  Number of octets used in last data block
