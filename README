@@ -36,11 +36,11 @@ File Index:
 
 File Entry:
 -----------
-[0-118]    FILE_PATH        NUL terminated string containing the complete file 
+[0-117]    FILE_PATH        NUL terminated string containing the complete file 
                             path (ASCII), e.g. "wwwroot/foo/bar.txt"
-[119-122]  NUM_BLOCKS	    Number of used logical blocks 
-[123-126]  FIRST_BLOCK      Logical block index of first data block
-[127-128]  LAST_BLOCK_SIZE  Number of octets used in last data block
+[118-121]  NUM_BLOCKS	    Number of used logical blocks 
+[122-125]  FIRST_BLOCK      Logical block index of first data block
+[126-127]  LAST_BLOCK_SIZE  Number of octets used in last data block
 
 
 File lookup
