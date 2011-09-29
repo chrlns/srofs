@@ -22,12 +22,12 @@ to directory structures.
 
 Superblock:
 -----------
-[0-4]     MAGIC            "SROFS" filesystem identifier
-[5  ]     VERSION          SROFS version number, currently 0
-[6  ]     BLOCKSIZE        Size of a logical filesystem block, 2^BLOCKSIZE
-                           default 9 = 2^9 = 512 byte blocks
-[7  ]	  INDEX_START      Logical blocknumber of first file index block
-[8-9]     NUM_FILES	   Number of files in this filesystem.
+[0-4]      MAGIC            "SROFS" filesystem identifier
+[5  ]      VERSION          SROFS version number, currently 0
+[6  ]      BLOCKSIZE        Size of a logical filesystem block, 2^BLOCKSIZE
+                            default 9 = 2^9 = 512 byte blocks
+[7  ]	   INDEX_START      Logical blocknumber of first file index block
+[8-9]      NUM_FILES        Number of files in this filesystem.
 
 File Index:
 -----------
@@ -46,22 +46,20 @@ File Entry:
 File lookup
 ===========
 
-File lookup can be done using the following (pseudo) code:
+File lookup can be done using the following (pseudo) code for a binary search:
 
 min = 0
 max = NUM_FILES - 1
-val = max / 2
 
-WHILE max != min
-    IF entry[val] == file
-        RETURN entry[val]
-    ELSE IF entry[val] > file
-        max = val
+WHILE min <= max
+    m = (min + max) / 2
+    IF file < entry[m]
+        max = m - 1
+    ELSE IF file > entry[m]
+        min = m + 1
     ELSE
-        min = val
-    val = min + (max - min) / 2
+        RETURN entry[m]
 END WHILE
 
-// TODO File not found condition not catched
 RETURN File not found
 
