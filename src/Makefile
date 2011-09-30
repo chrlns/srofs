@@ -1,4 +1,5 @@
+CFLAGS=-Wall -std=c99
 INCLUDE=.
 
 all:
-	gcc -I$(INCLUDE) -o mksrofs -O2 mksrofs.c
+	gcc $(CFLAGS) -I$(INCLUDE) -o mksrofs -O2 mksrofs.c
