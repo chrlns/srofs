@@ -5,8 +5,9 @@
 #include <stdlib.h>
 #include <srofs.h>
 #include <string.h>
+#include <sys/stat.h>
 
-#define MAX_PATH_LEN 118
+char* stradd(char*, char*);
 
 struct fileentry {
 	struct fileentry* next;
@@ -16,29 +17,54 @@ struct fileentry {
 struct fileentry* filelist = NULL;
 struct srofs_superblock superblock;
 
-void prepare_target(FILE* file, int size) {
-	printf("Preparing target file with size %u...", size);
-	
-	while(size > 0) {
-		size--;
+void paddto(FILE* file, int size) {
+	while(ftell(file) < size) {
 		fputc(0, file);
 	}
 	fflush(file);
-	
-	printf(" done.\n");
 }
 
 void write_superblock(FILE* file) {
 	fseek(file, 0, SEEK_SET); // Reset to beginning of target
-	fwrite(&superblock, 1, sizeof(struct srofs_fileentry), file);
+	fwrite(&superblock, 1, sizeof(struct srofs_superblock), file);
 	fflush(file);
 }
 
 void write_fileindex(FILE* file) {
-
+	fseek(file, superblock.index_start * (1 << superblock.blocksize), SEEK_SET);
+	struct fileentry* ptr = filelist;
+	while(ptr != NULL) {
+		fwrite(ptr->data, 1, sizeof(struct srofs_fileentry), file);
+		ptr = ptr->next;
+	}
+	fflush(file);
 }
 
-void write_filedata(FILE* file) {
+void write_filedata(FILE* file, char* rootdir) {
+	const int blksz = 1 << superblock.blocksize;
+	char* path = stradd(rootdir, "/");
+	struct fileentry* ptr = filelist;
+	while(ptr != NULL) {
+		char* fullpath = stradd(path, (char*)ptr->data->file_path);
+		FILE* src = fopen(fullpath, "rb");
+		if(!src) {
+			printf("Warning: could not read source file %s\n", fullpath);
+			continue;
+		}
+		while(!feof(src)) {
+			int c = fgetc(src);
+			fputc(c, file);
+		}
+		fclose(src);
+
+		// Padd to next logical block boundary
+		while(ftell(file) % blksz != 0) {
+			fputc(0, file);
+		}
+
+		free(fullpath);
+		ptr = ptr->next;
+	}
 }
 
 void print_arguments() {
@@ -117,8 +143,49 @@ void read_dir(DIR* dir, char* base, char* parent) {
 			printf("Adding file %s\n", path2);
 			struct srofs_fileentry* newentry = (struct srofs_fileentry*)
 				malloc(sizeof(struct srofs_fileentry));
+			strcpy((char*)newentry->file_path, path2);
 			insert_fileentry(newentry);
 		}
+	}
+}
+
+// Returns the size of the given file (works up to 2G)
+int fsize(const char* filename) {
+	struct stat st;
+
+	if(stat(filename, &st) == 0) {
+		return st.st_size;
+	}
+
+	return -1; 
+}
+
+void fill_index(char* rootdir) {
+	const int blksz = 1 << superblock.blocksize;
+	char* path = stradd(rootdir, "/");
+
+	// How many blocks are used by superblock and file index?
+	int first_block = 1 + superblock.num_files * sizeof(struct srofs_fileentry) / blksz;
+	if(superblock.num_files * sizeof(struct srofs_fileentry) % blksz != 0) {
+		first_block++;
+	}
+
+	struct fileentry* ptr = filelist;
+	while(ptr != NULL) {
+		char* fullpath = stradd(path, (char*)ptr->data->file_path);
+		int   size = fsize(fullpath);
+		if(size < 0) {
+			printf("Warning: cannot stat file %s\n", fullpath);
+		}
+		ptr->data->last_block_size = size % blksz;
+		ptr->data->num_blocks = size % blksz;
+		if(ptr->data->last_block_size > 0) {
+			ptr->data->num_blocks++;
+		}
+		ptr->data->first_block = first_block;
+		first_block += ptr->data->num_blocks;
+		free(fullpath);
+		ptr = ptr->next;
 	}
 }
 
@@ -155,12 +222,24 @@ int main(int argc, char* argv[]) {
 		perror("fopen()");
 		return EXIT_FAILURE;
 	}
-	prepare_target(target, targetsize);
+
+	// Read files and construct the basic SROFS structures
 	read_dir(root, rootdir, NULL);
+	fill_index(rootdir);
+
+	// Write the constructed filesystem to a real file
 	write_superblock(target);
+	paddto(target, 1 << superblock.blocksize);
 	write_fileindex(target);
-	write_filedata(target);
-	
+	paddto(target, ftell(target) + 
+		(1 << superblock.blocksize) - ftell(target) % (1 << superblock.blocksize));
+	write_filedata(target, rootdir);
+	paddto(target, targetsize);	
+
+	if(ftell(target) > targetsize) {
+		printf("Warning: target size too small for specified files!\n");
+	}
+
 	closedir(root);
 	fclose(target);
 	return 0;
