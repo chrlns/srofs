@@ -3,7 +3,7 @@
 struct srofs_superblock {
 	uint8_t  magic[5];    // "SROFS" filesystem identifier
 	uint8_t  version;     // Filesystem version number, currently 0
-	uint8_t  blocksize;   // Real blocksize is 2^blocksize
+	uint8_t  blocksize;   // Real blocksize is 2^blocksize, default 2^9
 	uint8_t  index_start; // Logical blocknumber of first file index block
 	uint16_t num_files;   // Number of files in this filesystem
 };
