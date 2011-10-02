@@ -27,6 +27,7 @@ void SROFS::close(SROFS_File* file) {
 
 bool SROFS::open(const char* file_path, SROFS_File* file) {
 	file->fs  = this;
+	file->ptr = 0;
 
 	// Binary lookup for the file
 	struct srofs_fileentry entry; // 128 bytes large, use it carefully
@@ -59,7 +60,7 @@ int SROFS::read(SROFS_File* file, uint8_t* buf, uint16_t len) {
 	struct srofs_fileentry entry;
 	int blksz = (1 << superblock.blocksize);
 	read_entry(file->idx, &entry);
-	
+
 	int filesize = blksz * (entry.num_blocks - 1) + entry.last_block_size;
 	if(file->ptr >= filesize) {
 		return -1;

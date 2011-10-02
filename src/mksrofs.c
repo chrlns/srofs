@@ -178,7 +178,7 @@ void fill_index(char* rootdir) {
 			printf("Warning: cannot stat file %s\n", fullpath);
 		}
 		ptr->data->last_block_size = size % blksz;
-		ptr->data->num_blocks = size % blksz;
+		ptr->data->num_blocks = size / blksz;
 		if(ptr->data->last_block_size > 0) {
 			ptr->data->num_blocks++;
 		}
