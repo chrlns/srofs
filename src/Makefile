@@ -1,5 +1,5 @@
 CFLAGS=-Wall -std=c99
-INCLUDE=.
+INCLUDE=../libraries/SROFS
 
 all:
 	gcc $(CFLAGS) -I$(INCLUDE) -o mksrofs -O2 mksrofs.c

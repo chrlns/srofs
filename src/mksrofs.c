@@ -3,7 +3,7 @@
 #include <memory.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <srofs.h>
+#include <srofs_structs.h>
 #include <string.h>
 #include <sys/stat.h>
 
