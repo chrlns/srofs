@@ -84,7 +84,7 @@ void SROFS::read_entry(int idx, struct srofs_fileentry* entry) {
 // string a is smaller than b and +1 if a is greater than b.
 // The implementation uses recursion which is hopefully optimized by the
 // compiler.
-int8_t SROFS::strcmp(uint8_t* a, uint8_t* b) {
+static int8_t strcmp(uint8_t* a, uint8_t* b) {
 	if(*a == 0 && *b == 0) {
 		return 0;
 	}
@@ -97,5 +97,5 @@ int8_t SROFS::strcmp(uint8_t* a, uint8_t* b) {
 		return 1;
 	}
 
-	return SROFS::strcmp(a + 1, b + 1);
+	return strcmp(a + 1, b + 1);
 }

@@ -3,13 +3,15 @@
 
 class SROFS_File;
 
+
+static int8_t strcmp(uint8_t* a, uint8_t* b);
+
 class SROFS {
 	private:
 		Sd2Card sd;
 		struct srofs_superblock superblock;
 
 		void   read_entry(int idx, struct srofs_fileentry* entry);
-		int8_t strcmp(uint8_t* a, uint8_t* b);
 
 	public:
 		// Open SD card and read superblock of the filesystem
@@ -28,7 +30,7 @@ class SROFS {
 class SROFS_File {
 	friend class SROFS;
 
-	public:
+	private:
 		SROFS*   fs;  // Corresponding filesystem
 		uint16_t idx; // Filelist index
 		uint32_t ptr; // Current file pointer

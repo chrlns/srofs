@@ -17,7 +17,6 @@ void loop() {
   SROFS_File file;
   if(srofs.open("index.html", &file)) {
     Serial.println("index.html opened");
-    Serial.println(file.idx); 
   } else {
     Serial.println("Error opening index.html");
   }
