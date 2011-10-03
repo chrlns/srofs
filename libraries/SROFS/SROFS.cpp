@@ -9,7 +9,7 @@ int SROFS_File::read(uint8_t* buf, uint16_t len) {
 }
 
 bool SROFS::begin() {
-	sd.init(); // Initialize SD card with default values
+	sd.init(SPI_HALF_SPEED, 4); // Initialize SD card with default values
 	if(!sd.readData(0, 0, sizeof(struct srofs_superblock), (uint8_t*)(&superblock))) {
 		return false;
 	} else {
