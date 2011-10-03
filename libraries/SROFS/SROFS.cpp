@@ -31,7 +31,7 @@ bool SROFS::open(const char* file_path, SROFS_File* file) {
 
 	// Binary lookup for the file
 	struct srofs_fileentry entry; // 128 bytes large, use it carefully
-	/*int min = 0;
+	int min = 0;
 	int max = this->superblock.num_files - 1;
 	while(min <= max) {
 		file->idx = (min + max) / 2;
@@ -45,14 +45,7 @@ bool SROFS::open(const char* file_path, SROFS_File* file) {
 			// We found the file
 			return true;
 		}	
-	}*/
-	for(int n = 0; n < superblock.num_files; n++) {
-		read_entry(n, &entry);
-		if(strcmp((uint8_t*)file_path, entry.file_path) == 0) {
-			file->idx = n;
-			return true;
-		}
-	}	
+	}
 	return false;
 }
 
@@ -87,14 +80,22 @@ void SROFS::read_entry(int idx, struct srofs_fileentry* entry) {
 	sd.readData(block, offset, sizeof(struct srofs_fileentry), (uint8_t*)entry);
 }
 
+// Compares two strings and returns 0 if both strings are equal, -1 if
+// string a is smaller than b and +1 if a is greater than b.
+// The implementation uses recursion which is hopefully optimized by the
+// compiler.
 int8_t SROFS::strcmp(uint8_t* a, uint8_t* b) {
-	for(int n = 0; a[n] != 0 && b[n] != 0; n++) {
-		if(a[n] < b[n]) {
-			return -1;
-		}
-		if(a[n] > b[n]) {
-			return 1;
-		}
+	if(*a == 0 && *b == 0) {
+		return 0;
 	}
-	return 0;
+	
+	if(*a < *b) {
+		return -1;
+	}
+
+	if(*a > *b) {
+		return 1;
+	}
+
+	return SROFS::strcmp(a + 1, b + 1);
 }
