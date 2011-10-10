@@ -1,3 +1,4 @@
+#include <WProgram.h>
 #include "SROFS.h"
 
 void SROFS_File::close() {
@@ -9,6 +10,8 @@ int SROFS_File::read(uint8_t* buf, uint16_t len) {
 }
 
 bool SROFS::begin() {
+	pinMode(10, OUTPUT);        // set the SS pin as an output (necessary!)
+	digitalWrite(10, HIGH);     // but turn off the W5100 chip!
 	sd.init(SPI_HALF_SPEED, 4); // Initialize SD card with default values
 	if(!sd.readData(0, 0, sizeof(struct srofs_superblock), (uint8_t*)(&superblock))) {
 		return false;
